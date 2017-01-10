@@ -1,0 +1,213 @@
+version: "2"
+services:
+ # vpn:
+ #  image: "siomiz/softethervpn"
+ #  cap_add:
+ #   - NET_ADMIN
+ #  ports:
+ #   - "500:500/udp"   #L2TP/IPSEC
+ #   - "4500:4500/udp" #L2TP/IPSEC
+ #   - "1701:1701/tcp" #L2TP/IPSEC
+ #   - "1194:1194/udp" #OpenVPN
+ #   - "4343:443/tcp" #OpenVPN for HTTPS
+ #   - "5555:5555/tcp" #SoftEther VPN
+ #   - "992:992/tcp" #for altenative
+ # mariadb:
+ #  image: "mariadb:latest"
+ #  ports:
+ #   - "3306:3306"
+ #  environment:
+ #   - MYSQL_ROOT_PASSWORD=123
+ #   - MYSQL_USER=admin
+ #   - MYSQL_PASSWORD=2510
+ #  volumes:
+ #   - ../data/database:/var/lib/mysql
+ 
+ proxy:
+  image: "nginx:latest"
+  # build: ./nginx
+  volumes:
+   - ../data/nginx/conf.d:/etc/nginx/conf.d
+   - ../data/nginx/sites-enabled:/etc/nginx/sites-enabled
+   - ../data/source/:/var/www/html/
+  ports:
+   - "80:80"
+   - "443:443"
+  links:
+   - apache-career-wse:career-wse
+ #   - db-career-wse
+   - apache-stage-career-wse:stage-career-wse
+   - apache-dev-career-wse:dev-career-wse
+   - db-dev-career-wse
+   - apache-stickymonkey
+   - db-stickymonkey
+   - apache-dualcall-sevier-wse:dualcall-sevier
+   - apache-cdn:cdn
+
+ apache-career-wse:
+  build: ./apache2/php7
+  volumes:
+   - ../data/source/career.wallstreetenglish.edu.vn/real/conf.d:/etc/apache2/conf.d/
+   - ../data/source/career.wallstreetenglish.edu.vn/real/www:/var/www/html/
+   - ../data/source/career.wallstreetenglish.edu.vn/real/log:/var/log/apache2/
+  ports:
+   - "30000:80"
+   - "30001:443"
+  environment:
+   - ALLOW_OVERRIDE=TRUE
+   - APACHE_USER=career.wallstreetenglish.edu.vn
+   - APACHE_UID=1000
+ db-career-wse:
+  image: "mariadb:latest"
+  ports:
+   - "40002:3306"
+  environment:
+   - MYSQL_ROOT_PASSWORD=123
+   - MYSQL_USER=admin
+   - MYSQL_PASSWORD=2510
+  volumes:
+   - ../data/database/career.wallstreetenglish.edu.vn/real:/var/lib/mysql
+
+ apache-stage-career-wse:
+  build: ./apache2
+  volumes:
+   - ../data/source/career.wallstreetenglish.edu.vn/stage/conf.d:/etc/apache2/conf.d/
+   - ../data/source/career.wallstreetenglish.edu.vn/stage/www:/var/www/html/
+   - ../data/source/career.wallstreetenglish.edu.vn/stage/log:/var/log/apache2/
+  ports:
+   - "30002:80"
+   - "30003:443"
+  environment:
+   - ALLOW_OVERRIDE=TRUE
+   - APACHE_USER=career.wallstreetenglish.edu.vn
+   - APACHE_UID=1000
+ apache-dev-career-wse:
+  build: ./apache2/php7
+  volumes:
+   - ../data/source/career.wallstreetenglish.edu.vn/dev/conf.d:/etc/apache2/conf.d/
+   - ../data/source/career.wallstreetenglish.edu.vn/dev/www:/var/www/html/
+   - ../data/source/career.wallstreetenglish.edu.vn/dev/log:/var/log/apache2/
+  ports:
+   - "30004:80"
+   - "30005:443"
+  environment:
+   - ALLOW_OVERRIDE=TRUE
+   - APACHE_USER=career.wallstreetenglish.edu.vn
+   - APACHE_UID=1000
+ db-dev-career-wse:
+  image: "mariadb:latest"
+  ports:
+   - "40001:3306"
+  environment:
+   - MYSQL_ROOT_PASSWORD=123
+   - MYSQL_USER=admin
+   - MYSQL_PASSWORD=2510
+  volumes:
+   - ../data/database/career.wallstreetenglish.edu.vn/dev:/var/lib/mysql
+
+ apache-stickymonkey:
+  build: ./apache2/php7
+  volumes:
+   - ../data/source/stickymonkeystudio/real/conf.d:/etc/apache2/conf.d/
+   - ../data/source/stickymonkeystudio/real/www:/var/www/html/
+   - ../data/source/stickymonkeystudio/real/log:/var/log/apache2/
+  ports:
+   - "30006:80"
+   - "30007:443"
+  environment:
+   - ALLOW_OVERRIDE=TRUE
+   - APACHE_USER=stickymonkeystudio
+   - APACHE_UID=1001
+ db-stickymonkey:
+  image: "mariadb:latest"
+  ports:
+   - "40003:3306"
+  environment:
+   - MYSQL_ROOT_PASSWORD=123
+   - MYSQL_USER=admin
+   - MYSQL_PASSWORD=2510
+   - MYSQL_DATABASE=stickymonkey_db
+  volumes:
+   - ../data/database/stickymonkeystudio/real:/var/lib/mysql
+
+ apache-dualcall-sevier-wse:
+  build: ./apache2/php7
+  volumes:
+   - ../data/source/dualcall.sevier.com/real/conf.d:/etc/apache2/conf.d/
+   - ../data/source/dualcall.sevier.com/real/www:/var/www/html/
+   - ../data/source/dualcall.sevier.com/real/log:/var/log/apache2/
+  ports:
+   - "30008:80"
+   - "30009:443"
+  environment:
+   - ALLOW_OVERRIDE=TRUE
+   - APACHE_USER=dualcall.sevier.com
+   - APACHE_UID=1002
+
+ apache-cdn:
+  build: ./apache2/cdn
+  volumes:
+   - ../data/source/cdn/conf.d:/etc/apache2/conf.d/
+   - ../data/source/cdn/www:/var/www/html/
+   - ../data/source/cdn/log:/var/log/apache2/
+  ports:
+   - "30010:80"
+   - "30011:443"
+  environment:
+   - ALLOW_OVERRIDE=TRUE
+   - APACHE_USER=main.cloudcdn
+   - APACHE_UID=1003
+
+ # apache-utility:
+ #  build: ./apache2
+ #  volumes:
+ #   - ../data/apache/conf.d:/etc/apache2/conf.d
+ #   - ../data/source/utility:/var/www/html/
+ #   #- ../data/apache/log/error.log:/var/log/apache2/error.log
+ #  ports:
+ #   - "30000:80"
+ #   - "30001:443"
+ #  environment:
+ #   - ALLOW_OVERRIDE=TRUE
+ # apache-wse:
+ #  build: ./apache2
+ #  volumes:
+ #   - ../data/apache/conf.d:/etc/apache2/conf.d
+ #   - ../data/source/wse:/var/www/html/
+ #   #- ../data/apache/log/error.log:/var/log/apache2/error.log
+ #  ports:
+ #   - "30002:80"
+ #   - "30003:443"
+ #  environment:
+ #   - ALLOW_OVERRIDE=TRUE
+ # apache-giaithidau:
+ #  build: ./apache2
+ #  volumes:
+ #   - ../data/apache/conf.d:/etc/apache2/conf.d
+ #   - ../data/source/giaithidau:/var/www/html/
+ #   #- ../data/apache/log/error.log:/var/log/apache2/error.log
+ #  ports:
+ #   - "30004:80"
+ #   - "30005:443"
+ #  environment:
+ #   - APACHE_USER=minh-hp
+ #   - APACHE_UID=1001
+ #   - ALLOW_OVERRIDE=TRUE
+ mail:
+  image: tvial/docker-mailserver:latest
+  hostname: mail
+  domainname: sanguosha.vn
+  container_name: mail
+  ports:
+   - "25:25"
+   - "143:143"
+   - "587:587"
+   - "993:993"
+   - "995:995"
+   - "110:110"
+  volumes:
+   - ../data/maildata/sanguosha/mail:/var/mail
+   - ../data/maildata/sanguosha/config/:/tmp/docker-mailserver/
+  environment:
+   - ENABLE_POP3=1
+
